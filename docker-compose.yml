@@ -21,3 +21,16 @@ services:
       - "9000"
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+
+###### MYSQL ############
+  mysql:
+    build:
+      context: ./mysql
+      args:
+        - TZ=${TIMEZONE}
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ${DATA_PATH_HOST}/mysql:/var/lib/mysql

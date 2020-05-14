@@ -1,8 +1,15 @@
 # 主机代码路径
-APP_CODE_PATH_HOST=../
+APP_CODE_PATH_HOST=~/environment/code
 
 # 容器代码路径
 APP_CODE_PATH_CONTAINER=/var/www
 
 # 时区
 TIMEZONE=Asia/Shanghai
+
+# 在主机上的数据储存位置
+DATA_PATH_HOST=~/environment/data
+
+###### MYSQL ############
+
+MYSQL_ROOT_PASSWORD=secret
