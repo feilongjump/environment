@@ -16,6 +16,8 @@ services:
     build: 
       context: ./php
       args:
+        - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
+        - PHP_COMPOSER_REPO=${PHP_COMPOSER_REPO}
         - TZ=${TIMEZONE}
     expose:
       - "9000"

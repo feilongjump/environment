@@ -10,6 +10,10 @@ TIMEZONE=Asia/Shanghai
 # 在主机上的数据储存位置
 DATA_PATH_HOST=~/environment/data
 
+###### PHP ############
+PHP_COMPOSER_URL=https://mirrors.aliyun.com/composer/composer.phar
+PHP_COMPOSER_REPO=https://mirrors.aliyun.com/composer/
+
 ###### MYSQL ############
 
 MYSQL_ROOT_PASSWORD=secret
