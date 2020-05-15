@@ -15,13 +15,14 @@ RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.lis
     && sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list
 
 RUN apt-get update -y \
-  && apt-get install -y apt-utils libzip-dev unzip \
+  && apt-get install -y apt-utils libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \
   # composer
   && curl $PHP_COMPOSER_URL -o /usr/local/bin/composer \
   && chmod a+x /usr/local/bin/composer \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
   # php 扩展
-  && docker-php-ext-install mysqli pdo_mysql zip \
+  && docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype \
+  && docker-php-ext-install bcmath gd mysqli pdo_mysql zip \
   # 时区
   && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
