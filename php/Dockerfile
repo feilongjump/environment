@@ -9,10 +9,20 @@ ENV PHP_COMPOSER_URL ${PHP_COMPOSER_URL}
 ARG PHP_COMPOSER_REPO
 ENV PHP_COMPOSER_REPO ${PHP_COMPOSER_REPO}
 
-RUN curl $PHP_COMPOSER_URL -o /usr/local/bin/composer \
+# 更改为阿里源
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
+    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
+    && sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list
+
+RUN apt-get update -y \
+  && apt-get install -y apt-utils libzip-dev unzip \
+  # composer
+  && curl $PHP_COMPOSER_URL -o /usr/local/bin/composer \
   && chmod a+x /usr/local/bin/composer \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
-  && docker-php-ext-install mysqli pdo pdo_mysql \
+  # php 扩展
+  && docker-php-ext-install mysqli pdo_mysql zip \
+  # 时区
   && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 EXPOSE 9000
