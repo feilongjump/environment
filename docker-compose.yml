@@ -16,6 +16,7 @@ services:
     build: 
       context: ./php
       args:
+        - PHP_VERSION=${PHP_VERSION}
         - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
         - PHP_COMPOSER_REPO=${PHP_COMPOSER_REPO}
         - TZ=${TIMEZONE}

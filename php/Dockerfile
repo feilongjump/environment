@@ -1,4 +1,5 @@
-FROM php:7.4-fpm
+ARG PHP_VERSION
+FROM php:${PHP_VERSION}-fpm
 
 ARG TZ=UTC
 ENV TZ ${TZ}
@@ -21,9 +22,18 @@ RUN apt-get update -y \
   && chmod a+x /usr/local/bin/composer \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
   # php 扩展
-  && docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype \
-  && docker-php-ext-install bcmath gd mysqli pdo_mysql zip \
+  && docker-php-ext-install bcmath mysqli pdo_mysql zip \
   # 时区
   && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+###########################################################################
+# GD 库
+###########################################################################
+RUN if [ ${PHP_VERSION} = "7.4" ]; then \
+      docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype; \
+    else \
+      docker-php-ext-configure gd --with-webp-dir --with-jpeg-dir --with-xpm-dir --with-freetype-dir; \
+    fi \
+    && docker-php-ext-install gd;
 
 EXPOSE 9000
