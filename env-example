@@ -10,6 +10,9 @@ TIMEZONE=Asia/Shanghai
 # 在主机上的数据储存位置
 DATA_PATH_HOST=~/environment/data
 
+###### NGINX ############
+HOST_HTTP_PORT=80
+
 ###### PHP ############
 PHP_VERSION=7.4
 PHP_COMPOSER_URL=https://mirrors.aliyun.com/composer/composer.phar
