@@ -27,4 +27,6 @@ RUN apt-get update -y \
   # 时区
   && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+WORKDIR /var/www
+
 EXPOSE 9000
