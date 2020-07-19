@@ -36,3 +36,12 @@ services:
       - "3306:3306"
     volumes:
       - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
+
+### Redis ################################################
+  redis:
+    build:
+      context: ./redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ${DATA_PATH_HOST}/redis:/data
