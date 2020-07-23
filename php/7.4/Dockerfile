@@ -22,9 +22,10 @@ RUN apt-get update -y \
   && chmod a+x /usr/local/bin/composer \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
   # php 扩展
-  && pecl install -o -f redis \
+  && pecl channel-update pecl.php.net \
+  && pecl install -o -f mongodb redis \
   && rm -rf /tmp/pear \
-  && docker-php-ext-enable redis \
+  && docker-php-ext-enable mongodb redis \
   && docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype \
   && docker-php-ext-install bcmath gd mysqli pcntl pdo_mysql zip \
   # 时区

@@ -45,3 +45,12 @@ services:
       - "6379:6379"
     volumes:
       - ${DATA_PATH_HOST}/redis:/data
+
+### MongoDB ##############################################
+  mongo:
+    build:
+      context: ./mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ${DATA_PATH_HOST}/mongo:/data
