@@ -1,5 +1,3 @@
-FROM nginx
+FROM nginx:alpine
 
-COPY sites/*.conf /etc/nginx/conf.d/
-
-EXPOSE 80
+EXPOSE 80 443

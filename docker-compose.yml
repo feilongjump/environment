@@ -1,19 +1,21 @@
 version: "3"
 
 services:
-
-###### Nginx ############
+  ### Nginx ################################################
   nginx:
     build:
       context: ./nginx
     ports:
       - "${HOST_HTTP_PORT}:80"
+      - "${HOST_HTTPS_PORT}:443"
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+      - ${NGINX_SSL_PATH}:/etc/nginx/ssl
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
 
-###### PHP ############
+  ### PHP ##################################################
   php:
-    build: 
+    build:
       context: ./php/${PHP_VERSION}
       args:
         - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
@@ -24,7 +26,7 @@ services:
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
 
-###### MYSQL ############
+  ### MYSQL ################################################
   mysql:
     build:
       context: ./mysql
@@ -37,7 +39,7 @@ services:
     volumes:
       - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
 
-### Redis ################################################
+  ### Redis ################################################
   redis:
     build:
       context: ./redis
@@ -46,7 +48,7 @@ services:
     volumes:
       - ${DATA_PATH_HOST}/redis:/data
 
-### MongoDB ##############################################
+  ### MongoDB ##############################################
   mongo:
     build:
       context: ./mongo

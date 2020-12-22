@@ -12,12 +12,14 @@ DATA_PATH_HOST=~/environment/data
 
 ###### NGINX ############
 HOST_HTTP_PORT=80
+HOST_HTTPS_PORT=443
+NGINX_SSL_PATH=./nginx/ssl/
+NGINX_SITES_PATH=./nginx/sites/
 
-###### PHP ############
+###### PHP ##############
 PHP_VERSION=7.4
 PHP_COMPOSER_URL=https://mirrors.aliyun.com/composer/composer.phar
 PHP_COMPOSER_REPO=https://mirrors.aliyun.com/composer/
 
 ###### MYSQL ############
-
 MYSQL_ROOT_PASSWORD=secret
