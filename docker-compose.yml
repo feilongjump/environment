@@ -12,8 +12,9 @@ services:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
       - ${NGINX_SSL_PATH}:/etc/nginx/ssl
       - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-    depends_on:
-      - php
+    links:
+      - "php:php"
+      - "php-5.6:php-5.6"
 
   ### PHP ##################################################
   php-5.6:
