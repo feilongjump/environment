@@ -1,5 +1,5 @@
 ARG PHP_VERSION
-FROM php:7.4-fpm
+FROM php:fpm
 
 ARG TZ=UTC
 ENV TZ ${TZ}
@@ -12,8 +12,8 @@ ENV PHP_COMPOSER_REPO ${PHP_COMPOSER_REPO}
 
 # 更改为阿里源
 RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
-    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
-    && sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list
+  && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
+  && sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list
 
 RUN apt-get update -y \
   && apt-get install -y apt-utils libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \

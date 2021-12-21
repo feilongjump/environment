@@ -12,17 +12,31 @@ services:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
       - ${NGINX_SSL_PATH}:/etc/nginx/ssl
       - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+    depends_on:
+      - php
 
   ### PHP ##################################################
-  php:
+  php-5.6:
     build:
-      context: ./php/${PHP_VERSION}
+      context: ./php/5.6
       args:
         - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
         - PHP_COMPOSER_REPO=${PHP_COMPOSER_REPO}
         - TZ=${TIMEZONE}
-    expose:
-      - "9000"
+    ports:
+      - "9001:9000"
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+
+  php:
+    build:
+      context: ./php/latest
+      args:
+        - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
+        - PHP_COMPOSER_REPO=${PHP_COMPOSER_REPO}
+        - TZ=${TIMEZONE}
+    ports:
+      - "9000:9000"
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
 
