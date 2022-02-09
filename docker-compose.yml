@@ -47,6 +47,7 @@ services:
       context: ./mysql
       args:
         - TZ=${TIMEZONE}
+    command: --lower-case-table-names=2
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     ports:
