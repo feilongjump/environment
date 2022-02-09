@@ -43,3 +43,16 @@ docker-compose down
 ```
 DB_HOST=mysql
 ```
+
+## 遇到的问题
+### Different lower_case_table_names settings for server ('2') and data dictionary ('0')
+* Docker Desktop Version: `4.4.3 ~ 4.4.4`
+* MySQL Version: `8.0.27`
+* Windows 10
+> 据说在旧版本时，`lower_case_table_names` 默认值是为 0 的，但是在以上版本中，则将值修改为 2 了。
+
+> 有说法可以将版本降至 `4.1.0` 便可解决（我没有尝试）。
+
+> 可以尝试使用此方式，[链接在此](https://stackoverflow.com/questions/64153426/laradock-mysql-container-exits0-different-lower-case-table-names-settings-fo)
+
+> `command: --lower-case-table-names=2` 直接设置值，在 Windows 10 下是可行的，但不清楚在 MacOS 和 Linux 是否会出现问题
