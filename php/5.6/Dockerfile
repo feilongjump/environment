@@ -21,8 +21,9 @@ RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.lis
 RUN apt-get update -y \
   && apt-get install -y apt-utils libmcrypt-dev libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \
   # composer
-  && curl $PHP_COMPOSER_URL -o /usr/local/bin/composer \
-  && chmod a+x /usr/local/bin/composer \
+  && php -r "copy('$PHP_COMPOSER_URL', 'composer-setup.php');" \
+  && php composer-setup.php --filename=composer --install-dir=/usr/local/bin/ \
+  && php -r "unlink('composer-setup.php');" \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
   # Redis
   && curl -L -o /tmp/redis.tar.gz https://github.com/phpredis/phpredis/archive/$PHP56_REDIS_VERSION.tar.gz \

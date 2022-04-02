@@ -17,7 +17,7 @@ NGINX_SSL_PATH=./nginx/ssl/
 NGINX_SITES_PATH=./nginx/sites/
 
 ###### PHP ##############
-PHP_COMPOSER_URL=https://mirrors.aliyun.com/composer/composer.phar
+PHP_COMPOSER_URL=https://getcomposer.org/installer
 PHP_COMPOSER_REPO=https://mirrors.aliyun.com/composer/
 PHP56_REDIS_VERSION=4.3.0
 
