@@ -24,6 +24,7 @@ services:
         - PHP_COMPOSER_URL=${PHP_COMPOSER_URL}
         - PHP_COMPOSER_REPO=${PHP_COMPOSER_REPO}
         - TZ=${TIMEZONE}
+        - PHP56_REDIS_VERSION=${PHP56_REDIS_VERSION}
     ports:
       - "9001:9000"
     volumes:
