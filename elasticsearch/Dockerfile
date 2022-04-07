@@ -1,0 +1,4 @@
+ARG ES_VERSION
+FROM elasticsearch:${ES_VERSION}
+
+EXPOSE 9200 9300

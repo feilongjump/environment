@@ -23,3 +23,6 @@ PHP56_REDIS_VERSION=4.3.0
 
 ###### MYSQL ############
 MYSQL_ROOT_PASSWORD=secret
+
+###### ElasticSearch ####
+ES_VERSION=8.1.2
