@@ -1,5 +1,8 @@
 version: "3.8"
 
+networks:
+  elastic:
+
 services:
   ### Nginx ################################################
   nginx:
@@ -79,15 +82,22 @@ services:
     build:
       context: ./elasticsearch
       args:
-        - ELASTIC_VERSION=${ELASTIC_VERSION}
+        - ELK_VERSION=${ELK_VERSION}
     volumes:
       - ${DATA_PATH_HOST}/elasticsearch:/usr/share/elasticsearch/data
     environment:
       - cluster.name=${ELASTIC_CLUSTER_NAME}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"      # ElasticSearch 是运行在 Java 上的，默认会开 2G 的内存空间，参数的作用就是限制内存使用的大小：256m
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"      # ElasticSearch 是运行在 Java 上的，默认会开 2G 的内存空间，参数的作用就是限制内存使用的大小：512m
       - discovery.type=single-node            # 使用单节点
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic
     ports:
       - "9200:9200"
       - "9300:9300"
-      
+
