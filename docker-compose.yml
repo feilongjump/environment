@@ -118,6 +118,11 @@ services:
   mail:
     build:
       context: ./mail
+    volumes:
+      - ${DATA_PATH_HOST}/mailhog/maildir:/maildir
+    environment:
+      - MH_STORAGE=maildir
+      - MH_MAILDIR_PATH=maildir
     ports:
       - "1025:1025"
       - "8025:8025"
