@@ -22,6 +22,9 @@ RUN apt-get update -y \
   && php composer-setup.php --filename=composer --install-dir=/usr/local/bin/ \
   && php -r "unlink('composer-setup.php');" \
   && composer config -g repo.packagist composer $PHP_COMPOSER_REPO \
+  # phpunit
+  && curl -L -o /usr/local/bin/phpunit https://phar.phpunit.de/phpunit-9.phar \
+  && chmod +x /usr/local/bin/phpunit \
   # php 扩展
   && pecl channel-update pecl.php.net \
   && pecl install -o -f mongodb redis \
