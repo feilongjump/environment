@@ -88,7 +88,7 @@ services:
     environment:
       - cluster.name=${ELASTIC_CLUSTER_NAME}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"      # ElasticSearch 是运行在 Java 上的，默认会开 2G 的内存空间，参数的作用就是限制内存使用的大小：512m
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"      # ElasticSearch 是运行在 Java 上的，默认会开 2G 的内存空间，参数的作用就是限制内存使用的大小：1g
       - discovery.type=single-node            # 使用单节点
       - bootstrap.memory_lock=true
     ulimits:
@@ -107,6 +107,8 @@ services:
       context: ./kibana
       args:
         - ELK_VERSION=${ELK_VERSION}
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     networks:
       - elastic
     ports:
