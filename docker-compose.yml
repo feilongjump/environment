@@ -8,6 +8,8 @@ services:
   nginx:
     build:
       context: ./nginx
+      args:
+        - TZ=${TIMEZONE}
     ports:
       - "${HOST_HTTP_PORT}:80"
       - "${HOST_HTTPS_PORT}:443"
