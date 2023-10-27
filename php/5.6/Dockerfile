@@ -13,10 +13,10 @@ ENV PHP_COMPOSER_REPO ${PHP_COMPOSER_REPO}
 ARG PHP56_REDIS_VERSION
 ENV PHP56_REDIS_VERSION ${PHP56_REDIS_VERSION}
 
-# 更改为阿里源
-RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
-  && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
-  && sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list
+# 更改系统源
+RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
+           -e '/stretch-updates/d' /etc/apt/sources.list
 
 RUN apt-get update -y \
   && apt-get install -y apt-utils libmcrypt-dev libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \
