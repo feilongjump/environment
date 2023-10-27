@@ -18,6 +18,7 @@ services:
       - ${NGINX_SSL_PATH}:/etc/nginx/ssl
       - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
     links:
+      - "php-5.6:php-5.6"
       - "php:php"
 
   ### PHP ##################################################
