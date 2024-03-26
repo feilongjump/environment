@@ -58,3 +58,18 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - ${APP_DATA_PATH_HOST}/redis:/data
+  ### Go #########
+  go:
+    build:
+      context: ${GO_APP_CODE_PATH_HOST}
+      dockerfile: ${GO_DOCKERFILE_PATH_HOST}
+      args:
+        TZ: '${TZ}'
+        PORT: '${GO_APP_PORT:-8088}'
+    ports:
+      - '${GO_APP_PORT:-8088}:${GO_APP_PORT:-8088}'
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
