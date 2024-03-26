@@ -9,6 +9,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 RUN apk add --update tzdata \
   && cp /usr/share/zoneinfo/$TZ /etc/localtime
 
+COPY nginx.conf /etc/nginx/
+
 WORKDIR /var/www
 
 EXPOSE 80 443
