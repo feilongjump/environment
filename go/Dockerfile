@@ -4,7 +4,9 @@ FROM golang:alpine as builder
 ENV GOPROXY=https://goproxy.cn,direct \
     CGO_ENABLED=0 \
     GOOS=linux \
-    GOARCH=amd64
+    GOARCH=amd64 \
+    GOPATH=/go \
+    GOCACHE=/go-build
 
 # 移动到工作目录：/app
 WORKDIR /app
@@ -12,13 +14,16 @@ WORKDIR /app
 # 此步骤相当于进行缓存，在 go.mod 以及 go.sum 文件没有进行修改时，可以直接从缓存中获取
 # 复制 go.mod 和 go.sum 并下载依赖
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod/cache \
+    go mod download
 
 # 将代码复制到容器中
-COPY . /app
+COPY . .
 
 # 将代码编译成二进制可执行文件 howio
-RUN go build -o howio .
+RUN --mount=type=cache,target=/go/pkg/mod/cache \
+    --mount=type=cache,target=/go-build \
+    go build -o howio .
 
 
 ########## 创建一个小镜像 ########
