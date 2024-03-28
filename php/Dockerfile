@@ -14,7 +14,7 @@ RUN apt-get update -y \
   # 这些软件的安装，是为了在 PHP 环境中支持各种图像处理和压缩功能
   && apt-get install -y libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \
   && docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype \
-  && docker-php-ext-install bcmath gd zip \
+  && docker-php-ext-install bcmath gd pdo_mysql zip \
   # 时区
   && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
   # 清除包管理器缓存，以及安装后的非必要文件
