@@ -1,0 +1,27 @@
+services:
+  ### Nginx #########
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        TZ: '${TZ}'
+    ports:
+      - '${HOST_HTTP_PORT:-80}:80'
+      - '${HOST_HTTPS_PORT:-443}:443'
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+      - ${NGINX_LOG_PATH}:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/conf.d
+      - ${NGINX_SSL_PATH}:/etc/nginx/ssl
+  ### PHP #########
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+      args:
+        TZ: '${TZ}'
+    ports:
+      - '${HOST_PHP_PORT:-9000}:9000'
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
