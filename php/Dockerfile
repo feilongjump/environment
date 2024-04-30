@@ -13,6 +13,10 @@ RUN apt-get update -y \
   # && composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ \
   # 这些软件的安装，是为了在 PHP 环境中支持各种图像处理和压缩功能
   && apt-get install -y libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev libxpm-dev libzip-dev unzip \
+  # php 扩展
+  && pecl channel-update pecl.php.net \
+  && pecl install -o -f redis \
+  && docker-php-ext-enable redis \
   && docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype \
   && docker-php-ext-install bcmath gd pdo_mysql zip \
   # 时区
