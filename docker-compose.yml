@@ -25,3 +25,14 @@ services:
       - '${HOST_PHP_PORT:-9000}:9000'
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+  ### PHP 8.0 #########
+  php-8.0:
+    build:
+      context: ./php-8.0
+      dockerfile: Dockerfile
+      args:
+        TZ: '${TZ}'
+    ports:
+      - '${HOST_PHP_8_PORT:-9008}:9000'
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
