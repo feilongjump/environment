@@ -4,6 +4,7 @@ services:
     # 另外的 LTS 版本是 8.4 （~2032年4月）
     image: mysql:9.7
     container_name: mysql
+    restart: ${MYSQL_RESTART}
     ports:
       - "${MYSQL_PORT}:3306"
     environment:
@@ -12,7 +13,7 @@ services:
     volumes:
       - ${MYSQL_VOLUMES}:/var/lib/mysql
     networks:
-      - dev_network
+      - environment_network
 
   postgres:
     # 这里只标注了 18 的版本，后续的子版本自动升级是可以接受的
@@ -20,6 +21,7 @@ services:
     # 如果无法接受这种，那就带上子版本号 18.x
     image: postgres:18
     container_name: postgres
+    restart: ${POSTGRES_RESTART}
     ports:
       - "${POSTGRES_PORT}:5432"
     environment:
@@ -29,11 +31,11 @@ services:
     volumes:
       - ${POSTGRES_VOLUMES}:/var/lib/postgresql
     networks:
-      - dev_network
+      - environment_network
 
 volumes:
   mysql_data:
   postgres_data:
 
 networks:
-  dev_network:
+  environment_network:
