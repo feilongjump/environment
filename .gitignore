@@ -1,0 +1,6 @@
+.env
+*.sql.bak
+
+
+.claude/
+*_data/
