@@ -10,10 +10,9 @@ services:
     restart: ${OTB_RESTART:-unless-stopped}
     working_dir: /app
     command: ["/app/bin/otb-api", "-config", "/app/config/config.prod.yaml"]
-    environment:
-      TZ: Asia/Shanghai                     # 定时任务（每日 02:30）按本地时间执行
-      OTB_JWT_SECRET: ${OTB_JWT_SECRET}     # 根 .env 注入，缺失时 release 模式拒绝启动
-      OTB_ADMIN_PASSWORD: ${OTB_ADMIN_PASSWORD}
+    env_file: ./app/.env           # 项目密钥（OTB_JWT_SECRET/OTB_ADMIN_PASSWORD），模板见 app/.env.example
+    environment:                   # environment 优先级高于 env_file，固定值放这里
+      TZ: Asia/Shanghai            # 定时任务（每日 02:30）按本地时间执行
     volumes:
       - ./app/bin:/app/bin:ro        # CI 直传的二进制（目录挂载，mv 替换对容器可见）
       - ./app/config:/app/config:ro  # config.prod.yaml（本仓库版本化）
