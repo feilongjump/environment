@@ -8,6 +8,7 @@
 ├── docker-compose.yml        # 根编排：共享设施（MySQL/PostgreSQL）+ include 各项目
 ├── .env.example              # 全部环境变量模板（按项目分段）
 └── projects/
+    ├── _demo/              # 新项目接入模板（含步骤 README，复制即用）
     ├── _shared/            # 跨项目公共片段（如 nginx-base.conf：gzip/安全头/公共反代头）
     │                       #   项目 compose 里挂载 ../_shared:/etc/nginx/shared:ro，
     │                       #   项目 nginx.conf 中 include /etc/nginx/shared/base.conf;
@@ -19,7 +20,7 @@
 
 ⚠️ nginx 继承坑：`proxy_set_header`/`add_header` 在 location 内一旦自定义，外层公共片段的同名指令对该 location 全部失效——项目 location 内不要重写这两类指令。
 
-新项目接入：`projects/<name>/` 照抄现有项目结构，根 `docker-compose.yml` 的 `include` 列表登记一行。
+新项目接入：复制 `projects/_demo/` 为 `projects/<name>/` 并按其 README 改造；根 `docker-compose.yml` 的 `include` 列表登记一行。
 
 ## 项目清单
 
