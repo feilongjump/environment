@@ -1,3 +1,12 @@
+# Environment 总编排：共享基础设施 + include 各项目片段
+# 新项目接入：projects/<name>/ 下建 compose.yml，并在下方 include 列表登记
+# ⚠️ 操作纪律：所有 compose 命令必须带服务名（up -d <svc> / restart <svc>），
+#    禁止裸 docker compose down —— 会停掉本机全部项目
+name: environment
+
+include:
+  - projects/otb/compose.yml
+
 services:
   mysql:
     # 最新的 LTS 版本是 9.7 （~2034年4月）

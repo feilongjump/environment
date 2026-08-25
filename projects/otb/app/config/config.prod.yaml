@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  mode: release
+
+database:
+  dsn: /app/data/otb.db
+
+jwt:
+  # 生产环境必须通过环境变量注入：OTB_JWT_SECRET=xxx，留空将拒绝启动
+  secret: ""
+  issuer: otb-api
+  expire_hours: 2
+
+log:
+  level: info
+  format: json
+  file: /app/data/logs/otb-api.log
+  max_size_mb: 100
+  max_backups: 7
+  max_age_days: 30
+
+cors:
+  allow_origins: [] # 前端走 otb-web 同源反代，无需 CORS；如需跨域直连按域名配置
+
+security:
+  login_max_per_minute: 5
+
+scheduler:
+  enabled: true       # 进程内定时任务：每日滚动纠偏 + 滞销冻结扫描（单实例部署）
+  daily_time: "02:30"
+
+# 仅首次启动（用户表为空）时播种
+admin:
+  username: admin
+  password: "" # 生产环境通过 OTB_ADMIN_PASSWORD 注入，留空则跳过播种
