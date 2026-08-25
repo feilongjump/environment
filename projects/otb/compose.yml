@@ -39,6 +39,7 @@ services:
       # 若直接挂载 dist，替换后容器内仍指向旧 inode
       - ./app:/srv/app:ro
       - ./app/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # 改动后需 compose restart otb-web
+      - ../_shared:/etc/nginx/shared:ro                     # 公共 nginx 片段（gzip/安全头/反代头）
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${OTB_WEB_PORT:-5918}:80"   # 前端页面对外端口
