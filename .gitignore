@@ -1,11 +1,17 @@
+# ===== 密钥与本地环境 =====
+# 任意层级的 .env 均不入库（模板 .env.example 不受影响）
 .env
 *.sql.bak
-
-
 .claude/
+
+# 本地数据库卷目录（mysql_data 等）
 *_data/
 
-# 项目产物与运行数据（CI 直传/运行生成，不入库）
+# ===== projects/：仅忽略产物与运行数据，其余默认可提交 =====
+# 产物由应用仓库 CI 直传，运行数据由容器生成，均不入库
 projects/*/app/bin/
 projects/*/app/dist/
 projects/*/data/
+
+# 本地 JS 工具链依赖目录（如有）
+node_modules/
