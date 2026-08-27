@@ -13,12 +13,13 @@ services:
     container_name: demo-api             # 改名，与服务名保持一致
     restart: ${DEMO_RESTART:-unless-stopped}   # 前缀改名；根 .env 加 <NAME>_RESTART=unless-stopped
     working_dir: /app
-    command: ["/app/demo-api", "-config", "/app/config.prod.yaml"]
+    command: ["/app/api/demo-api", "-config", "/app/api/config.prod.yaml"]
     env_file: ./api/.env                 # 项目密钥（模板见 api/.env.example）；文件缺失时 up 会报错，属预期
     environment:                         # environment 优先级高于 env_file，固定值放这里
       TZ: Asia/Shanghai
     volumes:
-      - ./api:/app:ro                    # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
+      # ./api 挂在 /app/api 而非 /app：/app 若整体只读挂载，其下嵌套挂载点无法创建
+      - ./api:/app/api:ro                # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
       - ./data:/app/data                 # 业务数据（备份 = 拷此目录）
       - ./logs:/app/logs                 # 运行日志（不入库，无需备份）
       - /etc/localtime:/etc/localtime:ro

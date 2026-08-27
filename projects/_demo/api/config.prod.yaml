@@ -1,5 +1,5 @@
 # 应用生产配置模板：键名随应用自定义，但【路径约定】固定，与 compose 挂载一一对应：
-#   ./api  → /app（本文件即 /app/config.prod.yaml，compose 启动命令引用此路径）
+#   ./api  → /app/api（本文件即 /app/api/config.prod.yaml，compose 启动命令引用此路径）
 #   ./data → /app/data（业务数据，备份对象）
 #   ./logs → /app/logs（运行日志，应用内滚动切割，无需备份）
 server:

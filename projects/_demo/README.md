@@ -10,7 +10,7 @@
 3. **登记 include**：根 `docker-compose.yml` 的 `include:` 列表加一行 `- projects/<name>/compose.yml`
 4. **登记编排变量**：根 `.env.example` 加项目段（`<NAME>_API_PORT`、`<NAME>_RESTART`），服务器 `.env` 同步填值
 5. **配密钥**：`cp api/.env.example api/.env` 填入真实值（`.env` 已被 gitignore）
-6. **建运行目录**：`mkdir -p web data logs`（被 gitignore，不建则由 docker 以 root 身份自动创建，后续 CI 直传可能遇权限问题）
+6. **建运行目录**：`mkdir -p web data logs`（被 gitignore，不建则由 docker 以 root 身份自动创建，后续 CI 直传可能遇权限问题）；服务器上还需 `sudo chown -R <部署账号> projects/<name>`，否则 CI 无法直传产物、无法留 web.old 回滚备份
 7. **验证启动**：仓库根目录 `docker compose config --quiet` 通过后 `docker compose up -d <name>-api`
 
 ## 目录约定（与 .gitignore 对应）

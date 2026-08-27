@@ -9,12 +9,14 @@ services:
     container_name: otb-api
     restart: ${OTB_RESTART:-unless-stopped}
     working_dir: /app
-    command: ["/app/otb-api", "-config", "/app/config.prod.yaml"]
+    command: ["/app/api/otb-api", "-config", "/app/api/config.prod.yaml"]
     env_file: ./api/.env           # 项目密钥（OTB_JWT_SECRET/OTB_ADMIN_PASSWORD），模板见 api/.env.example
     environment:                   # environment 优先级高于 env_file，固定值放这里
       TZ: Asia/Shanghai            # 定时任务（每日 02:30）按本地时间执行
     volumes:
-      - ./api:/app:ro              # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
+      # ./api 挂在 /app/api 而非 /app：/app 若整体只读挂载，Docker 将无法在其下
+      # 创建 /app/data、/app/logs 的嵌套挂载点（实测报 read-only file system）
+      - ./api:/app/api:ro          # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
       - ./data:/app/data           # SQLite 业务数据（备份 = 拷此目录）
       - ./logs:/app/logs           # 运行日志（应用内滚动切割，无需备份）
       - /etc/localtime:/etc/localtime:ro
