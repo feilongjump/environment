@@ -9,7 +9,7 @@
 ├── .env.example              # 全部环境变量模板（按项目分段）
 └── projects/
     ├── _demo/              # 新项目接入模板（含步骤 README，复制即用）
-    ├── _shared/            # 跨项目公共片段（如 nginx-base.conf：gzip/安全头/公共反代头）
+    ├── _shared/            # 跨项目公共片段（如 base.conf：gzip/安全头/公共反代头）
     │                       #   项目 compose 里挂载 ../_shared:/etc/nginx/shared:ro，
     │                       #   项目 nginx.conf 中 include /etc/nginx/shared/base.conf;
     └── <name>/               # 每个项目一个目录
