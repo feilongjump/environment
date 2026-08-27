@@ -1,7 +1,7 @@
 # OTB 项目（采购预算系统）：被根 docker-compose.yml include
 # 产物直传模式：现成基础镜像 + 挂载 CI 直传的产物，零自定义镜像构建
-#   otb-api：alpine 挂载 Go 静态二进制（otb-api CI 交叉编译后 scp 到 app/bin/）
-#   otb-web：nginx 挂载前端 dist（otb-web CI 打包后 scp 到 app/dist/）
+#   otb-api：alpine 挂载 Go 静态二进制（otb-api CI 交叉编译后 scp 到 api/）
+#   otb-web：nginx 挂载前端产物（otb-web CI 打包后 scp 到 web/，就地替换内容）
 # 完整部署流程见 otb-api 仓库 docs/deploy.md
 services:
   otb-api:
@@ -9,14 +9,14 @@ services:
     container_name: otb-api
     restart: ${OTB_RESTART:-unless-stopped}
     working_dir: /app
-    command: ["/app/bin/otb-api", "-config", "/app/config/config.prod.yaml"]
-    env_file: ./app/.env           # 项目密钥（OTB_JWT_SECRET/OTB_ADMIN_PASSWORD），模板见 app/.env.example
+    command: ["/app/otb-api", "-config", "/app/config.prod.yaml"]
+    env_file: ./api/.env           # 项目密钥（OTB_JWT_SECRET/OTB_ADMIN_PASSWORD），模板见 api/.env.example
     environment:                   # environment 优先级高于 env_file，固定值放这里
       TZ: Asia/Shanghai            # 定时任务（每日 02:30）按本地时间执行
     volumes:
-      - ./app/bin:/app/bin:ro        # CI 直传的二进制（目录挂载，mv 替换对容器可见）
-      - ./app/config:/app/config:ro  # config.prod.yaml（本仓库版本化）
-      - ./data:/app/data             # SQLite + 日志（备份 = 拷此目录）
+      - ./api:/app:ro              # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
+      - ./data:/app/data           # SQLite 业务数据（备份 = 拷此目录）
+      - ./logs:/app/logs           # 运行日志（应用内滚动切割，无需备份）
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${OTB_API_PORT:-9418}:8080" # API 直连端口（调试/健康检查）；页面流量走 otb-web 反代
@@ -34,11 +34,11 @@ services:
     depends_on:
       - otb-api
     volumes:
-      # 挂载父目录而非 dist 本身：CI 用 mv 原子替换 dist 目录，
-      # 若直接挂载 dist，替换后容器内仍指向旧 inode
-      - ./app:/srv/app:ro
-      - ./app/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # 改动后需 compose restart otb-web
-      - ../_shared:/etc/nginx/shared:ro                     # 公共 nginx 片段（gzip/安全头/反代头）
+      # web/ 是容器挂载点本身：CI 只能就地替换其内容，
+      # 若 mv 整目录替换，容器仍指向旧 inode（与旧 app/dist 父目录挂载方案的区别）
+      - ./web:/srv/web:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro  # 改动后需 compose restart otb-web
+      - ../_shared:/etc/nginx/shared:ro                 # 公共 nginx 片段（gzip/安全头/反代头）
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${OTB_WEB_PORT:-5918}:80"   # 前端页面对外端口

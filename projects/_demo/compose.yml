@@ -3,9 +3,9 @@
 #
 # 约定：
 #   1. 服务名/容器名带项目前缀（如 otb-api），避免多项目重名
-#   2. 编排变量（端口/重启策略）放根 .env；密钥放 app/.env，由 env_file 直接注入容器
-#   3. 产物（二进制/前端 dist）由应用仓库 CI 直传到 app/bin、app/dist，挂载使用，零自定义镜像构建
-#   4. 运行数据统一放 ./data（已被 gitignore，备份 = 拷此目录）
+#   2. 编排变量（端口/重启策略）放根 .env；密钥放 api/.env，由 env_file 直接注入容器
+#   3. 产物由应用仓库 CI 直传：二进制到 api/、前端到 web/（纯产物目录），挂载使用，零自定义镜像构建
+#   4. 业务数据统一放 ./data、运行日志放 ./logs（均已 gitignore；备份 = 拷 data/）
 #   5. 需要共享数据库时在服务里声明 networks: [env_net]，用 mysql:3306 / postgres:5432 直连
 services:
   demo-api:                              # 改名：<name>-api
@@ -13,14 +13,14 @@ services:
     container_name: demo-api             # 改名，与服务名保持一致
     restart: ${DEMO_RESTART:-unless-stopped}   # 前缀改名；根 .env 加 <NAME>_RESTART=unless-stopped
     working_dir: /app
-    command: ["/app/bin/demo-api", "-config", "/app/config/config.prod.yaml"]
-    env_file: ./app/.env                 # 项目密钥（模板见 app/.env.example）；文件缺失时 up 会报错，属预期
+    command: ["/app/demo-api", "-config", "/app/config.prod.yaml"]
+    env_file: ./api/.env                 # 项目密钥（模板见 api/.env.example）；文件缺失时 up 会报错，属预期
     environment:                         # environment 优先级高于 env_file，固定值放这里
       TZ: Asia/Shanghai
     volumes:
-      - ./app/bin:/app/bin:ro            # CI 直传的二进制（目录挂载，mv 替换对容器可见）
-      - ./app/config:/app/config:ro      # 版本化的配置文件
-      - ./data:/app/data                 # 运行数据
+      - ./api:/app:ro                    # CI 直传的二进制 + 版本化的 config.prod.yaml（目录挂载，mv 替换对容器可见）
+      - ./data:/app/data                 # 业务数据（备份 = 拷此目录）
+      - ./logs:/app/logs                 # 运行日志（不入库，无需备份）
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${DEMO_API_PORT:-9400}:8080"    # 前缀改名；根 .env 加 <NAME>_API_PORT=<端口>
@@ -35,4 +35,6 @@ services:
     #   - env_net
 
 # 需要 nginx 反代前端时，参照 projects/otb/compose.yml 的 otb-web 服务：
+# 前端产物直传 ./web（纯产物目录，整目录 gitignore，CI 就地替换内容），
+# nginx.conf 放项目根（版本化，勿放 web/ 里——会被 CI 替换覆盖），
 # 挂载 ../_shared:/etc/nginx/shared:ro 后在项目 nginx.conf 里 include 公共片段

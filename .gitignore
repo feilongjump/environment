@@ -7,11 +7,16 @@
 # 本地数据库卷目录（mysql_data 等）
 *_data/
 
-# ===== projects/：仅忽略产物与运行数据，其余默认可提交 =====
+# ===== projects/：忽略产物与运行数据，编排与配置入库 =====
 # 产物由应用仓库 CI 直传，运行数据由容器生成，均不入库
-projects/*/app/bin/
-projects/*/app/dist/
 projects/*/data/
+projects/*/logs/         # 运行日志（应用内滚动切割，无需备份）
+projects/*/web/          # 前端产物目录（CI 就地替换内容）
+projects/*/web.old/      # 上一版前端产物（CI 回滚备份）
+# api/ 默认全忽略（CI 直传的二进制等），版本化文件用例外放行
+projects/*/api/*
+!projects/*/api/config.prod.yaml
+!projects/*/api/.env.example
 
 # 本地 JS 工具链依赖目录（如有）
 node_modules/

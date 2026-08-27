@@ -14,8 +14,11 @@
     │                       #   项目 nginx.conf 中 include /etc/nginx/shared/base.conf;
     └── <name>/               # 每个项目一个目录
         ├── compose.yml       #   服务定义（被根 compose include）
-        ├── app/              #   配置与产物（产物由应用仓库 CI 直传，不入库）
-        └── data/             #   运行数据（不入库，备份 = 拷此目录）
+        ├── nginx.conf        #   前端反代配置（可选；改动后需 restart <name>-web）
+        ├── api/              #   后端：CI 直传二进制（不入库）+ config.prod.yaml/.env.example（入库）+ .env（密钥，不入库）
+        ├── web/              #   前端：CI 直传产物（整目录不入库，CI 就地替换内容）
+        ├── data/             #   业务数据（不入库，备份 = 拷此目录）
+        └── logs/             #   运行日志（不入库，应用内滚动切割，无需备份）
 ```
 
 ⚠️ nginx 继承坑：`proxy_set_header`/`add_header` 在 location 内一旦自定义，外层公共片段的同名指令对该 location 全部失效——项目 location 内不要重写这两类指令。

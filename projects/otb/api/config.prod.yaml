@@ -1,3 +1,5 @@
+# OTB 生产配置：唯一权威版本（otb-api 仓库不再持有副本）
+# 应用新增/修改配置项时，必须同步更新本文件
 server:
   port: 8080
   mode: release
@@ -14,7 +16,7 @@ jwt:
 log:
   level: info
   format: json
-  file: /app/data/logs/otb-api.log
+  file: /app/logs/otb-api.log
   max_size_mb: 100
   max_backups: 7
   max_age_days: 30
