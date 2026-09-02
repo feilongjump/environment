@@ -1,6 +1,7 @@
 # Environment
 
-服务器统一运行环境编排（Docker Compose）：共享基础设施 + 各项目服务，一台服务器跑多个生产项目。
+服务器统一运行环境编排（Docker Compose）：共享基础设施 + 各项目服务，多台服务器跑多个生产项目。
+本仓库是**部署相关事务的唯一入口与档案中心**：查"某项目怎么部署"、接入新项目、改部署，都在这里进行（一个项目一个 AI 会话）。
 
 ## 结构
 
@@ -27,18 +28,60 @@
 
 ## 项目清单
 
-| 项目 | 服务 | 对外端口（.env 可调） | 产物来源 |
+| 项目 | 服务 | 对外端口（.env 可调） | 部署方式 |
 |---|---|---|---|
-| otb | `otb-api` / `otb-web` | `OTB_API_PORT`(9418) / `OTB_WEB_PORT`(5918) | otb-api / otb-web 仓库 CI 直传，部署细节见 otb-api 仓库 `docs/deploy.md` |
-| flowstock | `flowstock-api`（页面+API 同端口） | `FLOWSTOCK_PORT`(9420) | flow_stock 仓库 GitHub Actions 交叉编译单二进制直传（前端 go:embed 内嵌，无需 web 容器），共享 postgres |
+| otb | `otb-api` / `otb-web` | 9418 / 5918 | 手动上传产物 + compose（CI 未接，待迁移） |
+| flowstock | `flowstock-api` | 9420 | flow_stock 仓库 push main 自动部署（Actions → deploy 用户） |
+
+## 服务器与部署全景
+
+| 服务器 | ssh 别名 | 在跑什么 | 部署通道 |
+|---|---|---|---|
+| **8.163.117.200**（主服务器） | `ssh env` | otb（compose）· flowstock（compose）· retail-integration **moni** 客户（systemd :8090）· 共享 postgres（moni 库 `retail_integration`） | ①②③ |
+| **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（systemd :8090）· postgres（库 `retail_integration_v21`） | ③ |
+
+三条部署通道：
+
+- **① 手动上传 + compose**：otb（产物手动 scp 到 `projects/otb/`，服务器 compose 拉起）
+- **② GitHub Actions 自动**：项目仓库 push main → CI 以 deploy 用户直传产物 → compose 拉起（**唯一全自动通道，新项目默认走此**；样例见 flow_stock 仓库 `.github/workflows/deploy.yml`）
+- **③ 项目自带 deploy.sh + systemd + /opt**：retail-integration 多客户实例（moni@主服务器、V21@V21 服务器），**计划迁移到本仓库 compose，迁移前放置不理**
+
+⚠️ **V21 服务器的 env 仓库故意停在旧提交**（9db6621）：新提交含 flowstock 的 include，该机无对应目录，盲目 `git pull` 会让 compose 报错。待 retail-integration 迁移 compose 时一并处理。
+
+## 密钥与访问
+
+**两条线，永不相交**：
+
+- **个人线**（每台电脑一把）：本机 `id_ed25519_long_desktop` → 两台服务器 root；root 仅限密钥登录（主服务器已关密码登录）
+- **CI 线**（每个项目一把）：私钥只存 GitHub Secrets，公钥装 `deploy@8.163` 的 `authorized_keys`，**必须带 `restrict` 前缀** + 注释 `ci-<项目名>@github-actions`
+
+| key | 存在位置 | 用途 |
+|---|---|---|
+| `id_ed25519_long_desktop` | 本机 → 两台服务器 root | 个人管理（`ssh env` / `ssh v21`） |
+| `id_rsa`（GitHub 上叫"豪华大鸡"） | 本机 → GitHub | **仅** GitHub 推送（2026-09-05 起从两台服务器撤除） |
+| MI | 笔记本 → GitHub | 笔记本推送 |
+| `flow_stock@github-actions` | GitHub Secrets + deploy@8.163 | flow_stock CI（已加 restrict） |
+| `skp-7xv8...` | root@V21 服务器 | **来源不明，暂保留待查证** |
+| `github-deploy` | 仅本机留档 | 已退役（原个人 key，已从 deploy 账户撤除） |
+
+服务器账户分工：**root** = 管理（git pull、compose、sshd）；**deploy@8.163** = 纯 CI 通道（docker 组），个人不要用它登录。
+
+**新机器初始化清单**（约 5 分钟）：
+
+1. `git clone` 本仓库及各项目仓库
+2. `gh auth login`
+3. 生成个人 key：`ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_<机器名>`，公钥从已授权机器代办追加到两台服务器 `/root/.ssh/authorized_keys`
+4. 复制 `~/.ssh/config` 的 `env` / `v21` 别名段
+
+**给新项目发 CI key**：`ssh-keygen`（注释 `ci-<name>@github-actions`）→ `gh secret set` 写入项目仓库 → 公钥加 `restrict` 前缀追加到 deploy@8.163 → 删本地私钥副本。
 
 ## 操作纪律（重要）
 
 - 所有 compose 命令**必须带服务名**：`docker compose up -d otb-api`、`docker compose restart mysql`
 - **禁止裸 `docker compose down`**——会停掉本机全部项目（含共享数据库）
-- 服务器路径 `/var/environment`；编排改动提交到本仓库后，服务器 `git pull` 同步
+- 服务器路径 `/var/environment`；编排改动提交本仓库后，**主服务器**（`ssh env`）`git pull` 同步；V21 服务器按上文说明**不要** pull
 
-## 快速开始（新机器）
+## 快速开始（新服务器）
 
 ```bash
 cp .env.example .env   # 按需填写各段变量
