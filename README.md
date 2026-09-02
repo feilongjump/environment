@@ -24,14 +24,17 @@
 
 ⚠️ nginx 继承坑：`proxy_set_header`/`add_header` 在 location 内一旦自定义，外层公共片段的同名指令对该 location 全部失效——项目 location 内不要重写这两类指令。
 
-新项目接入：复制 `projects/_demo/` 为 `projects/<name>/` 并按其 README 改造；根 `docker-compose.yml` 的 `include` 列表登记一行。
+新项目接入：按 `projects/_demo/README.md` 的**四阶段 SOP** 执行（决策 → 环境仓库侧 → 项目仓库侧 → 服务器验证；全程在本仓库的项目专属会话里指挥）。
 
 ## 项目清单
 
-| 项目 | 服务 | 对外端口（.env 可调） | 部署方式 |
-|---|---|---|---|
-| otb | `otb-api` / `otb-web` | 9418 / 5918 | 手动上传产物 + compose（CI 未接，待迁移） |
-| flowstock | `flowstock-api` | 9420 | flow_stock 仓库 push main 自动部署（Actions → deploy 用户） |
+档案页 = 每项目唯一事实源（`projects/<name>/DEPLOY.md`，含 OPS 日志），改部署先读它：
+
+| 项目 | 档案页 | 服务 | 对外端口 | 部署方式 |
+|---|---|---|---|---|
+| otb | [DEPLOY.md](projects/otb/DEPLOY.md) | `otb-api` / `otb-web` | 9418 / 5918 | 通道①手动上传 + compose（迁移②暂缓） |
+| flowstock | [DEPLOY.md](projects/flowstock/DEPLOY.md) | `flowstock-api` | 9420 | 通道②push main 自动（Actions → deploy 用户），**新项目照抄样板** |
+| retail-integration | [DEPLOY.md](projects/retail-integration/DEPLOY.md) | （未入 compose，systemd） | 8090 | 通道③项目 deploy.sh + systemd，双客户实例（moni/V21），计划迁② |
 
 ## 服务器与部署全景
 
