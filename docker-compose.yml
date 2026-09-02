@@ -6,6 +6,7 @@ name: environment
 
 include:
   - projects/otb/compose.yml
+  - projects/flowstock/compose.yml
 
 services:
   mysql:

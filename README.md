@@ -30,6 +30,7 @@
 | 项目 | 服务 | 对外端口（.env 可调） | 产物来源 |
 |---|---|---|---|
 | otb | `otb-api` / `otb-web` | `OTB_API_PORT`(9418) / `OTB_WEB_PORT`(5918) | otb-api / otb-web 仓库 CI 直传，部署细节见 otb-api 仓库 `docs/deploy.md` |
+| flowstock | `flowstock-api`（页面+API 同端口） | `FLOWSTOCK_PORT`(9420) | flow_stock 仓库 GitHub Actions 交叉编译单二进制直传（前端 go:embed 内嵌，无需 web 容器），共享 postgres |
 
 ## 操作纪律（重要）
 
