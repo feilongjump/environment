@@ -1,0 +1,28 @@
+# Retail Integration 零售集成中间件（百胜 E3Cloud ↔ EZR 同步）：被根 docker-compose.yml include
+# 单二进制多租户：同一镜像跑不同客户实例，差异全在服务器侧 api/config.yaml（不入库，
+# 由原通道③ deploy.d/*.conf 渲染产物迁移而来）。CI = 项目仓库 push（仅构建）/ dispatch（定向发布）。
+# 迁移顺序：V21（8.134.137.138）先行；moni 待服务商切换明朗后退役或同剧本补迁（主服务器目录对齐但不 up）。
+services:
+  retail-integration-api:
+    image: alpine:3
+    container_name: retail-integration-api
+    restart: ${RETAIL_INTEGRATION_RESTART:-unless-stopped}
+    working_dir: /app/api            # app 以工作目录发现 config.yaml 与 configs/（与原 systemd WorkingDirectory 行为一致）
+    command: ["/app/api/retail-server"]
+    environment:
+      TZ: Asia/Shanghai
+      GIN_MODE: release              # 与原 systemd unit 的 Environment 一致
+    volumes:
+      - ./api:/app/api:ro            # CI 直传二进制 + 服务器侧 config.yaml / configs/（mv 替换对容器可见）
+      - ./logs:/var/log/retail-integration   # config.yaml 的 log_output 指向该绝对路径，挂载落盘
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${RETAIL_INTEGRATION_PORT:-8090}:8090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/healthz"]   # 项目仓库提供的公开探针（/admin 有鉴权不可用）
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - env_net                      # DB 走 postgres:5432（服务器侧 config.yaml 的 database.host 须为 postgres，非 localhost）
