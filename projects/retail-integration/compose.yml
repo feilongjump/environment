@@ -16,6 +16,7 @@ services:
       - ./api:/app/api:ro            # CI 直传二进制 + 服务器侧 config.yaml / configs/（mv 替换对容器可见）
       - ./logs:/var/log/retail-integration   # config.yaml 的 log_output 指向该绝对路径，挂载落盘
       - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro   # alpine 裸镜像无 tzdata，Go 靠宿主 zoneinfo 解析 TZ（否则 UTC，E3Cloud 时间戳校验拒收）
     ports:
       - "${RETAIL_INTEGRATION_PORT:-8090}:8090"
     healthcheck:
