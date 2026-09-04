@@ -24,6 +24,8 @@
 
 ⚠️ nginx 继承坑：`proxy_set_header`/`add_header` 在 location 内一旦自定义，外层公共片段的同名指令对该 location 全部失效——项目 location 内不要重写这两类指令。
 
+⚠️ alpine 裸镜像无 tzdata：容器内 `TZ=Asia/Shanghai` 会因缺 zoneinfo 静默失效跑 UTC。需要正确本地时区的服务（如带时间戳校验的对外 API、按本地时间跑的定时任务）须再挂 `/usr/share/zoneinfo:/usr/share/zoneinfo:ro`（retail-integration compose 已示范）。**已确认 otb/flowstock 容器目前在跑 UTC**（2026-09-04 实测），是否修复待决策。
+
 新项目接入：按 `projects/_demo/README.md` 的**四阶段 SOP** 执行（决策 → 环境仓库侧 → 项目仓库侧 → 服务器验证；全程在本仓库的项目专属会话里指挥）。
 
 ## 项目清单
@@ -41,7 +43,7 @@
 | 服务器 | ssh 别名 | 在跑什么 | 部署通道 |
 |---|---|---|---|
 | **8.163.117.200**（主服务器） | `ssh env` | otb（compose）· flowstock（compose）· retail-integration **moni** 客户（systemd :8090）· 共享 postgres（moni 库 `retail_integration`） | ①②③ |
-| **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（:8090，③→② 切换待执行，见其 DEPLOY.md）· postgres（库 `retail_integration_v21`）· deploy 用户（CI 通道） | ② |
+| **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（compose :8090，2026-09-04 切换）· postgres（库 `retail_integration_v21`）· deploy 用户（CI 通道） | ② |
 
 三条部署通道：
 
