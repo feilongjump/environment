@@ -34,22 +34,22 @@
 |---|---|---|---|---|
 | otb | [DEPLOY.md](projects/otb/DEPLOY.md) | `otb-api` / `otb-web` | 9418 / 5918 | 通道①手动上传 + compose（迁移②暂缓） |
 | flowstock | [DEPLOY.md](projects/flowstock/DEPLOY.md) | `flowstock-api` | 9420 | 通道②push main 自动（Actions → deploy 用户），**新项目照抄样板** |
-| retail-integration | [DEPLOY.md](projects/retail-integration/DEPLOY.md) | （未入 compose，systemd） | 8090 | 通道③项目 deploy.sh + systemd，双客户实例（moni/V21），计划迁② |
+| retail-integration | [DEPLOY.md](projects/retail-integration/DEPLOY.md) | `retail-integration-api`（V21 机） | 8090 | 通道②迁移中（V21 先行；moni 暂留③，待其服务商切换明朗） |
 
 ## 服务器与部署全景
 
 | 服务器 | ssh 别名 | 在跑什么 | 部署通道 |
 |---|---|---|---|
 | **8.163.117.200**（主服务器） | `ssh env` | otb（compose）· flowstock（compose）· retail-integration **moni** 客户（systemd :8090）· 共享 postgres（moni 库 `retail_integration`） | ①②③ |
-| **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（systemd :8090）· postgres（库 `retail_integration_v21`） | ③ |
+| **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（:8090，③→② 切换待执行，见其 DEPLOY.md）· postgres（库 `retail_integration_v21`）· deploy 用户（CI 通道） | ② |
 
 三条部署通道：
 
 - **① 手动上传 + compose**：otb（产物手动 scp 到 `projects/otb/`，服务器 compose 拉起）
 - **② GitHub Actions 自动**：项目仓库 push main → CI 以 deploy 用户直传产物 → compose 拉起（**唯一全自动通道，新项目默认走此**；样例见 flow_stock 仓库 `.github/workflows/deploy.yml`）
-- **③ 项目自带 deploy.sh + systemd + /opt**：retail-integration 多客户实例（moni@主服务器、V21@V21 服务器），**计划迁移到本仓库 compose，迁移前放置不理**
+- **③ 项目自带 deploy.sh + systemd + /opt**：仅剩 retail-integration 的 moni 客户（V21 已迁②，切换步骤见其 DEPLOY.md）
 
-⚠️ **V21 服务器的 env 仓库故意停在旧提交**（9db6621）：新提交含 flowstock 的 include，该机无对应目录，盲目 `git pull` 会让 compose 报错。待 retail-integration 迁移 compose 时一并处理。
+⚠️ V21 服务器 env 仓库的旧提交锁定（9db6621）**已于 2026-09-04 解除**：盲 pull 会炸的原因是未启用项目（otb/flowstock）的 compose `env_file` 缺失——pull 前预建各项目 `api/.env` 空壳即可对齐 HEAD（"解析需要文件存在"与"是否 up"是两回事；该机仍只跑 postgres 与 retail-integration-api）。
 
 ## 密钥与访问
 
@@ -64,10 +64,11 @@
 | `id_rsa`（GitHub 上叫"豪华大鸡"） | 本机 → GitHub | **仅** GitHub 推送（2026-09-05 起从两台服务器撤除） |
 | MI | 笔记本 → GitHub | 笔记本推送 |
 | `flow_stock@github-actions` | GitHub Secrets + deploy@8.163 | flow_stock CI（已加 restrict） |
+| `ci-retail-integration@github-actions` | GitHub Secrets（`V21_SSH_*`）+ deploy@8.134 | retail-integration CI（已加 restrict；moni 接入时补 `moni_SSH_*` 成对） |
 | `skp-7xv8...` | root@V21 服务器 | **来源不明，暂保留待查证** |
 | `github-deploy` | 仅本机留档 | 已退役（原个人 key，已从 deploy 账户撤除） |
 
-服务器账户分工：**root** = 管理（git pull、compose、sshd）；**deploy@8.163** = 纯 CI 通道（docker 组），个人不要用它登录。
+服务器账户分工：**root** = 管理（git pull、compose、sshd）；**deploy@8.163 / deploy@8.134** = 纯 CI 通道（docker 组），个人不要用它登录。
 
 **新机器初始化清单**（约 5 分钟）：
 
