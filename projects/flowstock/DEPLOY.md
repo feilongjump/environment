@@ -8,8 +8,8 @@
 - **项目仓库**：`feilongjump/flow_stock`（本地 `C:\Users\long\Code\flow_stock`）
 - **形态**：B 单二进制（前端 go:embed 内嵌，页面 + API 同端口）
 - **服务器**：主服务器（`ssh env`）
-- **服务/端口**：`flowstock-api` / `FLOWSTOCK_PORT=9420`（health：`/api/health`）
-- **数据库**：共享 postgres，库 `flow_stock`
+- **服务/端口**：`flowstock-api` / `FLOWSTOCK_PORT=9420`（health：`/api/health`）；**单端口 = 页面 + API 同端口**，无独立前端端口
+- **数据库**：~~共享 postgres~~ → **2026-09-07 切换 SQLite-only**（应用内置纯 Go 驱动；`DB_FILE=/app/data/flowstock.db`，宿主卷 `api/data` 持久化；api/.env 中 DATABASE_URL/DB_DRIVER 已失效保留无害；postgres 容器不再被本项目使用，未动）
 - **Secrets**（flow_stock 仓库）：`SSH_HOST` / `SSH_USER` / `SSH_KEY`（= `ci-flowstock@github-actions`，装在 deploy@主服务器，带 `restrict`）
 - **服务器密钥**：`projects/flowstock/api/.env`（DATABASE_URL / JWT_SECRET / DB_DRIVER / PORT，600 deploy 属主）
 - **回滚**：激活段内置 `flowstock.old` 备份；回滚 = `ssh env` 把 `.old` mv 回来 + `docker compose restart flowstock-api`

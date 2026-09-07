@@ -2,6 +2,9 @@
 # 产物直传模式：前端经 go:embed 打进 Go 静态二进制，单服务同时提供页面与 /api，
 # 无需 nginx 容器（比 otb 少一个服务）。
 # 部署链路：flow_stock 仓库 GitHub Actions 交叉编译 Linux 二进制 → scp 到本目录 api/ → restart 本服务
+# 2026-09-07 数据库切换为 SQLite-only（应用内置纯 Go 驱动，不再连接 postgres）：
+#   - DB_FILE 固定为 /app/data/flowstock.db，挂宿主持久卷 ./api/data
+#   - api/.env 里的 DATABASE_URL/DB_DRIVER 已失效（应用不再读取），保留无害
 services:
   flowstock-api:
     image: alpine:3
@@ -9,11 +12,13 @@ services:
     restart: ${FLOWSTOCK_RESTART:-unless-stopped}
     working_dir: /app
     command: ["/app/api/flowstock"]
-    env_file: ./api/.env            # 密钥（DATABASE_URL / JWT_SECRET），模板见 api/.env.example
+    env_file: ./api/.env            # 密钥（JWT_SECRET），模板见 api/.env.example
     environment:                    # environment 优先级高于 env_file，固定值放这里
       TZ: Asia/Shanghai
+      DB_FILE: /app/data/flowstock.db   # SQLite 数据文件（宿主卷持久化）
     volumes:
       - ./api:/app/api:ro           # CI 直传的 Linux 二进制（mv 替换对容器可见）
+      - ./api/data:/app/data        # SQLite 数据持久卷
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${FLOWSTOCK_PORT:-9420}:8081"   # 页面与 API 同一端口（浏览器直连即可）
@@ -24,4 +29,4 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - env_net                     # 直连共享 postgres:5432（首次部署需先建库，见 api/.env.example）
+      - env_net
