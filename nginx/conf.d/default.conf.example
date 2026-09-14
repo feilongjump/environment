@@ -1,0 +1,137 @@
+# ============================================================
+# Nginx 站点配置示例（demo 模板）
+#
+# 使用步骤：
+#   1. 复制本文件为站点配置：
+#        cp default.conf.example a.conf
+#      （a.conf 等具体配置文件已在 .gitignore 中，不会提交）
+#
+#   2. 修改以下内容：
+#      - server_name：访问域名（如 a.localhost）
+#      - root：前端构建物路径（对应 ./nginx/sites/<站点名>/）
+#      - proxy_pass：后端服务地址（http://<容器名>:<端口>）
+#
+#   3. 重启 nginx：
+#        docker-compose restart nginx
+#
+# 关于 *.localhost 域名：
+#   根据 RFC 6761，所有 *.localhost 域名会自动解析为 127.0.0.1
+#   无需修改 hosts 文件，浏览器直接访问 http://a.localhost 即可
+# ============================================================
+
+
+server {
+    # 监听 80 端口（容器内部，对应宿主机 ${NGINX_PORT}）
+    listen 80;
+
+    # 站点域名，可写多个（用空格分隔）
+    # 例如：a.localhost www.a.localhost
+    server_name a.localhost;
+
+    # 前端构建物路径
+    # 容器内 /usr/share/nginx/sites/a 对应宿主机 ./nginx/sites/a/
+    # 用户需将 npm run build 的产物复制到 ./nginx/sites/a/
+    root /usr/share/nginx/sites/a;
+
+    # 默认首页
+    index index.html;
+
+
+    # ============================================================
+    # 前端路由（SPA 适用）
+    # ============================================================
+    # try_files 行为：
+    #   1. 先查找 $uri（精确文件，如 /assets/index-abc123.js）
+    #   2. 找不到则查找 $uri/（目录）
+    #   3. 最后 fallback 到 /index.html（让前端路由处理）
+    #
+    # Vue 3 / React 等 SPA 必须有这一行
+    # 否则刷新页面或访问子路由会 404
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+
+    # ============================================================
+    # 反向代理：后端 API
+    # ============================================================
+    # 浏览器请求 a.localhost/api/xxx → 转发到 api 容器的对应路径
+    #
+    # 关键：proxy_pass 末尾的 / 决定了路径如何转发
+    #   http://api:8080;   → 后端收到 /api/xxx（保留 /api/ 前缀）
+    #   http://api:8080/;  → 后端收到 /xxx（去掉 /api/ 前缀）
+    #
+    # 选择哪种方式，取决于后端应用的路由设计：
+    #   1. 应用路由包含 /api/ 前缀（如 /api/auth/login）：
+    #      用 http://api:8080;（不带末尾 /）
+    #   2. 应用路由不包含 /api/ 前缀（如 /auth/login）：
+    #      用 http://api:8080/;（带末尾 /，去掉前缀）
+    #
+    # 本模板默认是方式 2（更常见），改成方式 1 只需去掉末尾的 /
+    #
+    # 修改 proxy_pass 指向对应的后端服务：
+    #   http://api:8080;   # 指向名为 "api" 的容器
+    #   http://auth:8081;  # 指向名为 "auth" 的容器
+    location /api/ {
+        proxy_pass http://api:8080/;
+
+        # HTTP/1.1 支持（推荐用于 WebSocket 和长连接）
+        proxy_http_version 1.1;
+
+        # 透传客户端真实信息到后端
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket 支持（如不需要可删除）
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # 后端响应超时时间
+        proxy_read_timeout 60s;
+    }
+
+
+    # ============================================================
+    # 反向代理：静态资源（uploads）
+    # ============================================================
+    # 浏览器请求 a.localhost/uploads/xxx → 转发到 api 容器的 /uploads/xxx
+    #
+    # 通常和后端 API 指向同一个服务，也可以指向不同的服务（如专门的 CDN）
+    # 例如：proxy_pass http://api:8080;  # uploads 也由 api 服务提供
+    #
+    # 如果 uploads 路径前缀在你的后端不是 /uploads/，需要调整这里和后端路由
+    location /uploads/ {
+        proxy_pass http://api:8080;
+
+        # 透传客户端信息
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 静态资源不需要长连接
+        proxy_set_header Connection "";
+
+        # （可选）静态资源缓存
+        # 取消下面的注释可以启用 nginx 缓存上传文件
+        # 上传后文件内容通常不变，适合短期缓存
+        # proxy_cache_valid 200 1d;
+        # expires 1d;
+    }
+
+
+    # ============================================================
+    # （可选）静态资源缓存
+    # ============================================================
+    # 如果需要更激进的缓存策略，可以添加：
+    #
+    # location ~* \.(js|css|png|jpg|jpeg|svg|gif|ico|woff2?)$ {
+    #     expires 7d;
+    #     add_header Cache-Control "public, immutable";
+    # }
+    #
+    # Vite/Webpack 等打包工具生成的文件名带 hash，适合长期缓存
+    # 普通 HTML 不建议加，应保持短缓存或不缓存
+}

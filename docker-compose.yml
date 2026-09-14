@@ -1,24 +1,53 @@
+# ============================================================
+# Docker Compose 配置
+#
+# 文件分层说明：
+# - docker-compose.yml（本文件）：基础设施，提交到 git
+#     定义数据库、Nginx 等通用服务，所有人共用
+#
+# - docker-compose.override.yml：用户自定义，不提交到 git
+#     定义本机要跑的后端服务（api、auth 等）
+#     docker-compose up 时会自动与本文件合并
+#
+# 使用方式：
+#   docker-compose up -d           # 启动所有服务（含 override 中的）
+#   docker-compose ps              # 查看容器状态
+#   docker-compose logs -f nginx   # 查看 nginx 日志
+#   docker-compose down            # 停止所有服务
+#   docker-compose down -v         # 停止并删除数据卷
+# ============================================================
+
+
 services:
+  # ============================================================
+  # MySQL 数据库
+  # ============================================================
+  # 最新的 LTS 版本是 9.7（~2034年4月）
+  # 另外的 LTS 版本是 8.4（~2032年4月）
   mysql:
-    # 最新的 LTS 版本是 9.7 （~2034年4月）
-    # 另外的 LTS 版本是 8.4 （~2032年4月）
     image: mysql:9.7
     container_name: mysql
     restart: ${MYSQL_RESTART}
+    # 端口映射：宿主机 ${MYSQL_PORT} -> 容器 3306
     ports:
       - "${MYSQL_PORT}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
     volumes:
+      # 数据库数据持久化目录（在 .env 中配置）
       - ${MYSQL_VOLUMES}:/var/lib/mysql
     networks:
       - env_net
 
+
+  # ============================================================
+  # PostgreSQL 数据库
+  # ============================================================
+  # 这里只标注了 18 的版本，后续的子版本自动升级是可以接受的
+  # 子版本的更新，仅用于修复 Bug 和解决安全问题
+  # 如果无法接受这种，那就带上子版本号 18.x
   postgres:
-    # 这里只标注了 18 的版本，后续的子版本自动升级是可以接受的
-    # 子版本的更新，仅用于修复Bug和解决安全问题
-    # 如果无法接受这种，那就带上子版本号 18.x
     image: postgres:18
     container_name: postgres
     restart: ${POSTGRES_RESTART}
@@ -33,10 +62,52 @@ services:
     networks:
       - env_net
 
+
+  # ============================================================
+  # Nginx 反向代理 + 静态文件服务
+  # ============================================================
+  # 两个职责：
+  #   1. 服务前端构建产物（从 ./nginx/sites/ 目录读取）
+  #   2. 反向代理后端 API（从 ./nginx/conf.d/ 读取站点配置）
+  #
+  # 注意：nginx 不依赖具体的后端服务（如 api、auth）
+  # 因为这些服务定义在 docker-compose.override.yml 中
+  # nginx 启动后会持续重试连接后端，连上即正常工作
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: ${NGINX_RESTART}
+    # 宿主机 ${NGINX_PORT} -> 容器 80
+    # 浏览器通过 http://localhost:${NGINX_PORT} 访问
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      # 站点配置文件目录（只读）
+      # 用户在 conf.d/ 下放置 <站点名>.conf，nginx 自动加载
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # 前端构建物目录（只读）
+      # 用户将 npm run build 产物复制到 nginx/sites/<站点名>/
+      - ./nginx/sites:/usr/share/nginx/sites:ro
+    networks:
+      - env_net
+
+
+# ============================================================
+# 数据卷定义
+# ============================================================
+# 这里只是声明，实际数据由 Docker 管理
+# 注意：mysql_data 和 postgres_data 是 Docker 自动管理的命名卷
+# 宿主机上的 ./mysql_data（由 MYSQL_VOLUMES 指定）是绑定挂载
 volumes:
   mysql_data:
   postgres_data:
 
+
+# ============================================================
+# 网络定义
+# ============================================================
+# 所有服务都加入 env_net 网络，彼此可通过服务名互相访问
+# 例如：在 nginx 反代配置中用 http://api:8080 访问 api 容器
 networks:
   env_net:
     driver: bridge
