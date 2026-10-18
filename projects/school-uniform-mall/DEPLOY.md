@@ -4,18 +4,27 @@
 
 ## 现状
 
-- **通道**：② GitHub Actions（接入完成后 push main 自动 + workflow_dispatch 手动）
+- **通道**：② GitHub Actions 全自动（push main 自动 + workflow_dispatch 手动兜底；2026-10-18 接入当日验证后开启）
 - **项目仓库**：`feilongjump/school-uniform-mall`（本地 `C:\Users\long\Code\school-uniform-mall`）
 - **形态**：B 单二进制（管理后台前端 go:embed 内嵌进 `sum`，页面 + API 同端口；小程序产物不入服务器，走微信平台）
-- **服务器**：主服务器（`ssh env`）
-- **服务/端口**：`sum-api` / `SUM_PORT=9422`（容器内 8080；health：`/api/health`）
+- **服务器**：**阿里云轻量应用服务器 47.115.207.44**（ssh 别名 `swas`，root；`admin` 为控制台登录账户）
+- **服务/端口**：`sum-api` / `SUM_PORT=9422`（容器内 8080；health：`/api/health`）；**公网访问需在 SWAS 控制台防火墙放行 TCP 9422**（当前仅 22 开放）
 - **数据库**：共享 postgres（env_net 直连 `postgres:5432`，库 `school_uniform_mall`；首次启动自动 goose 迁移 + 种子超管 admin/admin123，**上线后立即改密**）
-- **Secrets**（school-uniform-mall 仓库）：`SSH_HOST` / `SSH_USER` / `SSH_KEY`（= `ci-school-uniform-mall@github-actions`，装在 deploy@主服务器，带 `restrict`）
-- **服务器密钥**：`projects/school-uniform-mall/api/.env`（JWT_SECRET / DATABASE_DSN，600 deploy 属主）
-- **回滚**：激活段内置 `sum.old` 备份；回滚 = `ssh env` 把 `.old` mv 回来 + `docker compose restart sum-api`
+- **Secrets**（school-uniform-mall 仓库）：`SSH_HOST=47.115.207.44` / `SSH_USER=deploy` / `SSH_KEY`（= `ci-school-uniform-mall@github-actions`，装在 deploy@轻量服务器，带 `restrict`）
+- **服务器密钥**：`projects/school-uniform-mall/api/.env`（JWT_SECRET / DATABASE_DSN，600 deploy 属主）；根 `.env` 为 **640 root:deploy**（deploy 用户跑 compose 需读编排变量）
+- **回滚**：激活段内置 `sum.old` 备份；回滚 = `ssh swas` 把 `.old` mv 回来 + `docker compose restart sum-api`
 - **构建要点**：bun 构建前端 → 产物校验（`assets/` 标记防空壳包）→ CGO_ENABLED=0 交叉编译；CI 前置 verify 作业（web typecheck+lint、go test）
-- **时区**：compose 已挂 zoneinfo（避 alpine 无 tzdata 跑 UTC 的坑，根 README 有说明）——与 flowstock/otb 不同，勿对齐他们
+- **时区**：compose 已挂 zoneinfo（避 alpine 无 tzdata 跑 UTC 的坑，见根 README）——与 flowstock/otb 不同，勿对齐他们
+- **微信**：config.prod.yaml `wechat.mock: true`（联调期）；正式上线三件事：换正式 appid、备案 HTTPS 域名、切 `mock: false` 填真实凭据
+
+## 轻量服务器（swas）环境要点（2026-10-18 初始化）
+
+- Ubuntu 24.04，2C / 1.6G 内存 / 40G 盘；apt 装 docker.io 29 + docker-compose-v2；补 2G swap（fstab 持久）
+- **GitHub HTTPS 不通**（GnuTLS -110）：`/var/environment` 从本机经 **git bundle** 同步——本机 `git bundle create %TEMP%\env.bundle develop` → scp 到 `/root/env.bundle` → 服务器 `git pull /root/env.bundle develop`；GitHub SSH（22 端口）可达，日后需要服务器自主 pull 可配只读 deploy key
+- **Docker Hub 直拉超时**：`/etc/docker/daemon.json` 配 registry-mirrors（daocloud / 1ms.run / dockerproxy），改后 `systemctl restart docker`
+- 未启用项目（otb/flowstock/retail-integration）`api/.env` 已放空壳（compose 解析需要文件存在，V21 机同款做法）
+- 根 `.env` / 项目 `api/.env` 密钥均服务器本地生成（openssl rand），不入库
 
 ## OPS 日志
 
-- 2026-09-08 首次接入（四阶段 SOP）：建目录/compose/DEPLOY，登记 include 与 SUM_ 变量，发 CI key，服务器准备，首次部署。
+- 2026-10-18 首次接入（四阶段 SOP，全程在 environment 会话指挥）。期间发现原定主服务器 8.163.117.200 整机不可达（全端口 + ICMP），改接入用户提供的轻量应用服务器 47.115.207.44。服务器初始化：装 docker、2G swap、bundle 克隆本仓库、根/项目 .env 生成、postgres:18 起库 school_uniform_mall、deploy 用户 + restrict CI key、GitHub Secrets 三项。排障记录：①本机 ssh 未指定 IdentityFile 导致公钥拒认（新别名 swas 已入 ~/.ssh/config）②daemon.json 首次经 printf 写坏 + systemd 重启限流误报，重写并 reset-failed 解决 ③根 .env 640 root:deploy 后 deploy 方可跑 compose。首次部署 run 39089479340 成功：sum-api healthy、/api/health 200、迁移 v6、超管种子。同日开启 push main 自动部署（run 39089790200 由 push 触发验证）。
