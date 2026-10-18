@@ -1,0 +1,33 @@
+# 启步校服商城（单商户 B2C：小程序下单 + 到店自提核销）：被根 docker-compose.yml include
+# 形态 B 单二进制：管理后台前端经 go:embed 打进 Go 静态二进制（sum），页面与 API 同端口，
+# 无需 nginx 容器。小程序产物不入服务器（经微信开发者工具上传微信平台）。
+# 部署链路：school-uniform-mall 仓库 GitHub Actions 交叉编译 Linux 二进制 →
+#   scp 到本目录 api/sum → restart 本服务
+services:
+  sum-api:
+    image: alpine:3
+    container_name: sum-api
+    restart: ${SUM_RESTART:-unless-stopped}
+    working_dir: /app
+    command: ["/app/api/sum", "-config", "/app/api/config.prod.yaml"]
+    env_file: ./api/.env            # 密钥（JWT_SECRET / DATABASE_DSN），模板见 api/.env.example
+    environment:                    # environment 优先级高于 env_file，固定值放这里
+      TZ: Asia/Shanghai
+    volumes:
+      - ./api:/app/api:ro           # CI 直传的 Linux 二进制 + 版本化 config.prod.yaml（mv 替换对容器可见）
+      - ./data:/app/data            # 业务数据：上传图片等（备份 = 拷此目录）
+      - ./logs:/app/logs            # 运行日志
+      - /etc/localtime:/etc/localtime:ro
+      # alpine 裸镜像无 tzdata，只设 TZ 会静默跑 UTC（根 README 已知坑）；
+      # 商城订单/售后带本地时间语义，补挂 zoneinfo 使 TZ 生效
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    ports:
+      - "${SUM_PORT:-9422}:8080"    # 页面与 API 同端口（管理后台浏览器直连）
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - env_net                     # 共享 postgres（env_net 直连 postgres:5432，库 school_uniform_mall）

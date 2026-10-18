@@ -37,6 +37,7 @@
 | otb | [DEPLOY.md](projects/otb/DEPLOY.md) | `otb-api` / `otb-web` | 9418 / 5918 | 通道①手动上传 + compose（迁移②暂缓） |
 | flowstock | [DEPLOY.md](projects/flowstock/DEPLOY.md) | `flowstock-api` | 9420 | 通道②push main 自动（Actions → deploy 用户），**新项目照抄样板** |
 | retail-integration | [DEPLOY.md](projects/retail-integration/DEPLOY.md) | `retail-integration-api`（V21 机） | 8090 | 通道②迁移中（V21 先行；moni 暂留③，待其服务商切换明朗） |
+| school-uniform-mall | [DEPLOY.md](projects/school-uniform-mall/DEPLOY.md) | `sum-api` | 9422 | 通道②push main 自动（2026-09-08 接入） |
 
 ## 服务器与部署全景
 

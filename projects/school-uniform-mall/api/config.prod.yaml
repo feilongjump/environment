@@ -1,0 +1,19 @@
+# 生产配置（版本化，非敏感；敏感项由 api/.env 环境变量覆盖：JWT_SECRET / DATABASE_DSN）
+# 路径约定：业务数据 /app/data，日志 /app/logs，与 compose 挂载一一对应
+server:
+  port: 8080          # 容器内固定，对外由 SUM_PORT 映射（默认 9422）
+  mode: release
+database:
+  # 占位：真实值由 api/.env 的 DATABASE_DSN 覆盖
+  dsn: postgres://CHANGE_ME@postgres:5432/school_uniform_mall?sslmode=disable
+jwt:
+  secret: CHANGE_ME   # 由 api/.env 的 JWT_SECRET 覆盖
+data:
+  dir: /app/data
+log:
+  level: info
+  file: /app/logs/server.log
+wechat:
+  # 联调期 mock（登录/支付不走微信服务器，小程序 mock code 见项目 README）。
+  # 正式上线三件事：替换小程序 appid、备案 HTTPS 域名、此处切 false 并填真实凭据。
+  mock: true

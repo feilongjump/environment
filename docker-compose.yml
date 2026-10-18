@@ -8,6 +8,7 @@ include:
   - projects/otb/compose.yml
   - projects/flowstock/compose.yml
   - projects/retail-integration/compose.yml
+  - projects/school-uniform-mall/compose.yml
 
 services:
   mysql:
