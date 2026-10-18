@@ -29,3 +29,4 @@
 
 - 2026-10-18 首次接入（四阶段 SOP，全程在 environment 会话指挥）。期间发现原定主服务器 8.163.117.200 整机不可达（全端口 + ICMP），改接入用户提供的轻量应用服务器 47.115.207.44。服务器初始化：装 docker、2G swap、bundle 克隆本仓库、根/项目 .env 生成、postgres:18 起库 school_uniform_mall、deploy 用户 + restrict CI key、GitHub Secrets 三项。排障记录：①本机 ssh 未指定 IdentityFile 导致公钥拒认（新别名 swas 已入 ~/.ssh/config）②daemon.json 首次经 printf 写坏 + systemd 重启限流误报，重写并 reset-failed 解决 ③根 .env 640 root:deploy 后 deploy 方可跑 compose。首次部署 run 39089479340 成功：sum-api healthy、/api/health 200、迁移 v6、超管种子。同日开启 push main 自动部署（run 39089790200 由 push 触发验证）。
 - 2026-10-18 push 自动部署第二跑（39089790200）因项目仓库 TestGenPickupCode 偶发失败（百次采样全不重复断言，碰撞率≈0.5%/跑）；已在项目仓库改粗熵检查（≥90/100 不同值）修复，run 39089987222 全绿，自动通道复验通过。
+- 2026-10-18 应用户要求试切 SUM_PORT=80（干净 URL），说明 HTTPS 时代 80 的角色（301 跳转 + ACME 验证）与 443（正式服务）分工后，用户决定暂用 9422，当日回切。结论留档：域名/备案/HTTPS 就绪时，nginx 进驻 80/443，sum-api 撤回容器内网；小程序届时以 TARO_APP_API=https://域名/api/app 切换（合法域名登记到域名级）。
