@@ -24,7 +24,9 @@ services:
       # 商城订单/售后带本地时间语义，补挂 zoneinfo 使 TZ 生效
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     ports:
-      - "${SUM_PORT:-9422}:8080"    # 页面与 API 同端口（管理后台浏览器直连）
+      # 2026-10-27 起 sum-web（nginx 443）对外，sum-api 只留本机回环供调试；
+      # 公网入口 = https://qibu888.cn（80/443 → sum-web → sum-api:8080 容器内网）
+      - "127.0.0.1:${SUM_PORT:-9422}:8080"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/health"]
       interval: 30s

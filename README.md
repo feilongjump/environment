@@ -37,7 +37,7 @@
 | otb | [DEPLOY.md](projects/otb/DEPLOY.md) | `otb-api` / `otb-web` | 9418 / 5918 | 通道①手动上传 + compose（迁移②暂缓） |
 | flowstock | [DEPLOY.md](projects/flowstock/DEPLOY.md) | `flowstock-api` | 9420 | 通道②push main 自动（Actions → deploy 用户），**新项目照抄样板** |
 | retail-integration | [DEPLOY.md](projects/retail-integration/DEPLOY.md) | `retail-integration-api`（V21 机） | 8090 | 通道②迁移中（V21 先行；moni 暂留③，待其服务商切换明朗） |
-| school-uniform-mall | [DEPLOY.md](projects/school-uniform-mall/DEPLOY.md) | `sum-api`（轻量机） | 9422 | 通道②push main 自动（2026-10-18 接入，轻量机环境要点见其 DEPLOY.md） |
+| school-uniform-mall | [DEPLOY.md](projects/school-uniform-mall/DEPLOY.md) | `sum-web` / `sum-api`（轻量机） | 80/443（`https://qibu888.cn`）· 9422 仅本机 | 通道②push main 自动（2026-10-18 接入；10-27 上线 HTTPS） |
 
 ## 服务器与部署全景
 
@@ -45,7 +45,7 @@
 |---|---|---|---|
 | **8.163.117.200**（主服务器） | `ssh env` | otb（compose）· flowstock（compose）· retail-integration **moni** 客户（systemd :8090）· 共享 postgres（moni 库 `retail_integration`） | ①②③ |
 | **8.134.137.138**（V21 服务器） | `ssh v21` | retail-integration **V21** 客户（compose :8090，2026-09-04 切换）· postgres（库 `retail_integration_v21`）· deploy 用户（CI 通道） | ② |
-| **47.115.207.44**（轻量应用服务器） | `ssh swas` | school-uniform-mall（compose :9422）· postgres（库 `school_uniform_mall`）· deploy 用户（CI 通道） | ② |
+| **47.115.207.44**（轻量应用服务器） | `ssh swas` | school-uniform-mall（`https://qibu888.cn`：sum-web nginx 80/443 → sum-api）· postgres（库 `school_uniform_mall`）· deploy 用户（CI 通道）· acme.sh 证书自动续期（宿主 cron） | ② |
 
 ⚠️ 主服务器 8.163.117.200 于 **2026-10-18 从本机完全不可达**（全端口 + ICMP 丢包，V21 与外网正常），待云控制台排查；期间 school-uniform-mall 改接入轻量应用服务器。轻量机 **GitHub HTTPS 与 Docker Hub 均不通**（bundle 同步 / registry-mirrors 的对策见其 DEPLOY.md）。
 
