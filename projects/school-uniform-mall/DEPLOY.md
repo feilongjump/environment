@@ -9,7 +9,7 @@
 - **形态**：B 单二进制（管理后台前端 go:embed 内嵌进 `sum`，页面 + API 同端口；小程序产物不入服务器，走微信平台）
 - **服务器**：**阿里云轻量应用服务器 47.115.207.44**（ssh 别名 `swas`，root；`admin` 为控制台登录账户）
 - **服务/端口**：`sum-web`（nginx，**80/443，公网唯一入口** `https://qibu888.cn`，health：`/api/health`）→ 容器内网反代 → `sum-api`（8080，宿主仅 `127.0.0.1:9422` 调试）；防火墙放行 22/80/443，9422 可关
-- **域名/证书**：`qibu888.cn`（2026-10-27 备案完成）；Let's Encrypt ECC 证书，acme.sh 装宿主 root（crontab 自动续期，webroot `/var/www/acme`，续期 reloadcmd `/root/reload-sum-web.sh` 自动重启 sum-web）；acme.sh 经 `git -c core.autocrlf=false archive` 打包传入（避 Windows CRLF）
+- **域名/证书**：`qibu888.cn`（2026-10-27 备案完成）；Let's Encrypt ECC 证书，acme.sh 装宿主 root（crontab 自动续期，webroot `/var/www/acme`，续期 reloadcmd `/root/reload-sum-web.sh` 自动重启 sum-web）；acme.sh 经 `git -c core.autocrlf=false archive` 打包传入（避 Windows CRLF）；LE 账户邮箱 `474170860@qq.com`（续期异常告警收件）
 - **数据库**：共享 postgres（env_net 直连 `postgres:5432`，库 `school_uniform_mall`；首次启动自动 goose 迁移 + 种子超管 admin/admin123，**上线后立即改密**）
 - **Secrets**（school-uniform-mall 仓库）：`SSH_HOST=47.115.207.44` / `SSH_USER=deploy` / `SSH_KEY`（= `ci-school-uniform-mall@github-actions`，装在 deploy@轻量服务器，带 `restrict`）
 - **服务器密钥**：`projects/school-uniform-mall/api/.env`（JWT_SECRET / DATABASE_DSN，600 deploy 属主）；根 `.env` 为 **640 root:deploy**（deploy 用户跑 compose 需读编排变量）
