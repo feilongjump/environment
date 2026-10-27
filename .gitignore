@@ -17,6 +17,8 @@ projects/*/web.old/      # 上一版前端产物（CI 回滚备份）
 projects/*/api/*
 !projects/*/api/config.prod.yaml
 !projects/*/api/.env.example
+# TLS 证书（acme.sh 续期写入，绝不入库）
+projects/*/certs/
 
 # 本地 JS 工具链依赖目录（如有）
 node_modules/
